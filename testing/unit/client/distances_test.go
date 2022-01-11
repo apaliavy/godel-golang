@@ -1,8 +1,6 @@
 package client_test
 
 import (
-	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,99 +8,43 @@ import (
 
 	"github.com/apaliavy/godel-golang/testing/unit/client"
 	"github.com/apaliavy/godel-golang/testing/unit/model"
-	"github.com/apaliavy/godel-golang/testing/unit/repository"
-	mockRepo "github.com/apaliavy/godel-golang/testing/unit/tools/testing/mocks/repository"
 )
 
-func TestDistancesHandler_GetDistance(t *testing.T) {
+func TestGetHaversineDistance(t *testing.T) {
 	cases := []struct {
 		name        string
-		from, to    *model.Location
+		from, to    *model.LatLng
 		expectError bool
 		err         error
 		expected    float64
-		getCache    func() repository.DistancesCache
 	}{
 		{
-			name:        "validation error - origin is not provided",
+			name:        "origin is not provided - expect an error",
 			from:        nil,
+			to:          &model.LatLng{10.10, 20.20},
 			expectError: true,
-			err:         fmt.Errorf("origin lat/lng is not provided"),
-			getCache: func() repository.DistancesCache {
-				dc := &mockRepo.DistancesCacheMock{}
-				return dc
-			},
+			err:         client.ErrOriginNotProvided,
 		},
 		{
-			name:        "validation error - destination is not provided",
-			from:        &model.Location{LatLng: &model.LatLng{}},
+			name:        "destination is not provided - expect an error",
+			from:        &model.LatLng{10.10, 20.20},
+			to:          nil,
 			expectError: true,
-			err:         fmt.Errorf("destination lat/lng is not provided"),
-			getCache: func() repository.DistancesCache {
-				dc := &mockRepo.DistancesCacheMock{}
-				return dc
-			},
+			err:         client.ErrDestinationsNotProvided,
 		},
 		{
-			name: "get distance between points - found in cache",
-			from: &model.Location{LatLng: &model.LatLng{}},
-			to:   &model.Location{LatLng: &model.LatLng{}},
-			getCache: func() repository.DistancesCache {
-				dc := &mockRepo.DistancesCacheMock{}
-				dc.GetReturns(1001.25, nil)
-				return dc
-			},
+			name:        "same location given - zero distance",
+			from:        &model.LatLng{10.10, 20.20},
+			to:          &model.LatLng{10.10, 20.20},
 			expectError: false,
-			expected:    1001.25,
+			expected:    0,
 		},
 		{
-			name: "get distance between points - not found in cache",
-			from: &model.Location{LatLng: &model.LatLng{
-				Latitude:  20.10,
-				Longitude: 20.20,
-			}},
-			to: &model.Location{LatLng: &model.LatLng{
-				Latitude:  20.10,
-				Longitude: 19.20,
-			}},
-			getCache: func() repository.DistancesCache {
-				dc := &mockRepo.DistancesCacheMock{}
-				dc.GetReturns(0, client.ErrNotFoundInCache)
-				return dc
-			},
+			name:        "expect correct distance calculation",
+			from:        &model.LatLng{20.10, 20.20},
+			to:          &model.LatLng{20.10, 19.20},
 			expectError: false,
 			expected:    104538.73080187329,
-		},
-		{
-			name: "get distance between points - an error received from cache",
-			from: &model.Location{LatLng: &model.LatLng{
-				Latitude:  20.10,
-				Longitude: 20.20,
-			}},
-			to: &model.Location{LatLng: &model.LatLng{
-				Latitude:  20.10,
-				Longitude: 19.20,
-			}},
-			getCache: func() repository.DistancesCache {
-				dc := &mockRepo.DistancesCacheMock{}
-				dc.GetReturns(0, fmt.Errorf("an internal error"))
-				return dc
-			},
-			expectError: false,
-			expected:    104538.73080187329,
-		},
-		{
-			name: "get distance between points - an error putting into cache",
-			from: &model.Location{LatLng: &model.LatLng{}},
-			to:   &model.Location{LatLng: &model.LatLng{}},
-			getCache: func() repository.DistancesCache {
-				dc := &mockRepo.DistancesCacheMock{}
-				dc.GetReturns(1001.25, nil)
-				dc.PutReturns(fmt.Errorf("failed to put data into cache"))
-				return dc
-			},
-			expectError: false,
-			expected:    1001.25,
 		},
 	}
 
@@ -111,9 +53,7 @@ func TestDistancesHandler_GetDistance(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			h := client.NewDistancesClient(tc.getCache())
-
-			distance, err := h.GetDistance(context.Background(), tc.from, tc.to)
+			distance, err := client.GetHaversineDistance(tc.from, tc.to)
 
 			if tc.expectError {
 				require.Error(t, err)

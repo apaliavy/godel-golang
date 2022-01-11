@@ -1,63 +1,27 @@
 package client
 
 import (
-	"context"
 	"errors"
-	"fmt"
 	"math"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/apaliavy/godel-golang/testing/unit/model"
-	"github.com/apaliavy/godel-golang/testing/unit/repository"
 )
 
 var (
-	ErrNotFoundInCache = errors.New("not found in cache")
+	ErrOriginNotProvided       = errors.New("nil origin is not allowed")
+	ErrDestinationsNotProvided = errors.New("nil destination is not allowed")
 )
 
-type DistancesHandler struct {
-	distancesCache repository.DistancesCache
-}
-
-func NewDistancesClient(dc repository.DistancesCache) *DistancesHandler {
-	return &DistancesHandler{
-		distancesCache: dc,
-	}
-}
-
-func (h *DistancesHandler) GetDistance(ctx context.Context, from, to *model.Location) (float64, error) {
-	var logger = logrus.New()
-
-	if from == nil || from.LatLng == nil {
-		return 0, fmt.Errorf("origin lat/lng is not provided")
+// GetHaversineDistance returns distance in meters between two coords
+func GetHaversineDistance(from, to *model.LatLng) (float64, error) {
+	if from == nil {
+		return 0, ErrOriginNotProvided
 	}
 
-	if to == nil || to.LatLng == nil {
-		return 0, fmt.Errorf("destination lat/lng is not provided")
+	if to == nil {
+		return 0, ErrDestinationsNotProvided
 	}
 
-	distance, err := h.distancesCache.Get(ctx, from, to)
-	if err == nil {
-		return distance, nil
-	} else if !errors.Is(err, ErrNotFoundInCache) {
-		logger.WithError(err).Error("failed to fetch distance from cache")
-	}
-
-	distance, err = getHaversineDistance(from.LatLng, to.LatLng)
-	if err != nil {
-		return 0, err
-	}
-
-	if err := h.distancesCache.Put(ctx, from, to, distance); err != nil {
-		logger.WithError(err).Error("failed to put data into cache")
-	}
-
-	return distance, nil
-}
-
-// getHaversineDistance returns distance in meters between two coords
-func getHaversineDistance(from, to *model.LatLng) (float64, error) {
 	hsin := func(theta float64) float64 {
 		return math.Pow(math.Sin(theta/2), 2)
 	}

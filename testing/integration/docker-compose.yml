@@ -1,0 +1,12 @@
+version: "3.5"
+
+services:
+  prices.integration.db:
+    container_name: int_testing_posgres_prices_db
+    image: postgres:12.2-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: prices
