@@ -1,0 +1,45 @@
+run:
+  tests: true
+  timeout: 5m
+linters:
+  disable-all: true
+  enable:
+    # Default linters
+    - deadcode
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unused
+    - varcheck
+    - depguard
+    - gofmt
+    - lll
+    - nestif
+    - stylecheck
+    - testpackage
+issues:
+  exclude-rules:
+  - path: _test\.go
+    linters:
+      - varcheck
+      - lll
+  - linters:
+    - lll
+    source: '`env:'
+linters-settings:
+  depguard:
+    list-type: blacklist
+    packages:
+      - github.com/davecgh/go-spew/spew
+      # Has a serious unresolved defect and is considered unsafe
+      # See https://github.com/satori/go.uuid/issues/73
+      - github.com/satori/go.uuid
+  lll:
+    # max line length, lines longer will be reported. Default is 120.
+    # '\t' is counted as 1 character by default, and can be changed with the tab-width option
+    line-length: 120
+    tab-width: 1
