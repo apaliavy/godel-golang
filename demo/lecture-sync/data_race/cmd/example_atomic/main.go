@@ -30,6 +30,7 @@ func main() {
 			wg.Done()
 		}(i)
 	}
+
 	wg.Wait()
 
 	fmt.Printf("balance=%d\n", acc.balance)
