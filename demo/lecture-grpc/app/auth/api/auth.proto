@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package service.auth;
+
+option go_package = "./client";
+
+service Auth {
+  rpc IsAuthenticated (IsAuthenticatedRequest) returns (IsAuthenticatedResponse) {}
+}
+
+message IsAuthenticatedRequest {
+  string token = 1;
+}
+
+message IsAuthenticatedResponse {
+  bool authenticated = 1;
+}

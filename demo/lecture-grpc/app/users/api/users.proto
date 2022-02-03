@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package service.users;
+
+option go_package = "./client";
+
+service Users {
+  rpc CreateUser (CreateUserRequest) returns (CreateUserResponse) {}
+  rpc ListUsers (ListUsersRequest) returns (ListUsersResponse) {}
+  rpc GetUser (GetUserRequest) returns (User) {}
+}
+
+message CreateUserRequest {
+  string firstname = 1;
+  string lastname = 2;
+  string email = 3;
+  string password = 4;
+}
+
+message CreateUserResponse {
+  int32 id = 1;
+}
+
+message ListUsersRequest {
+  string order = 1;
+  string order_by = 2;
+  int32 limit = 3;
+}
+
+message User {
+  string firstname = 1;
+  string lastname = 2;
+  string email = 3;
+  string password = 4;
+  int32 id = 5;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+}
+
+message GetUserRequest {
+  int32 id = 1;
+}

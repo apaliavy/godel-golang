@@ -1,0 +1,24 @@
+version: "3.5"
+
+services:
+  gateway:
+      container_name: example-gateway
+      build:
+        context: .
+        dockerfile: Dockerfile.gateway
+      ports:
+        - "8080:8080"
+  auth:
+      container_name: example-auth
+      build:
+        context: .
+        dockerfile: Dockerfile.auth
+      ports:
+        - "9000:9000"
+  users:
+    container_name: example-users
+    build:
+      context: .
+      dockerfile: Dockerfile.users
+    ports:
+      - "9001:9001"
