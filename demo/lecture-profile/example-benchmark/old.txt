@@ -1,0 +1,6 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/apaliavy/godel-golang/demo/lecture-profile/example-benchmark
+BenchmarkPrimeNumbers-8   	  289584	      4590 ns/op	    4088 B/op	       9 allocs/op
+PASS
+ok  	github.com/apaliavy/godel-golang/demo/lecture-profile/example-benchmark	2.438s
