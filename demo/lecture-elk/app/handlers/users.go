@@ -7,12 +7,19 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/sirupsen/logrus"
 
 	"github.com/apaliavy/godel-golang/demo/lecture-elk/app/errors"
 	"github.com/apaliavy/godel-golang/demo/lecture-elk/app/log"
 	"github.com/apaliavy/godel-golang/demo/lecture-elk/app/users"
 )
+
+var createReqCounter = promauto.NewCounter(prometheus.CounterOpts{
+	Name: "example_godel_app_user_creation_request",
+	Help: "The total number of user creation requests",
+})
 
 type Users struct {
 	logger *logrus.Logger
@@ -28,6 +35,8 @@ func NewUsersHandler(repo *users.Repository) *Users {
 
 func (uh *Users) Create(w http.ResponseWriter, r *http.Request) {
 	uh.logger.Info("received call at /create endpoint")
+
+	createReqCounter.Inc()
 
 	payload := &users.User{}
 	if err := json.NewDecoder(r.Body).Decode(payload); err != nil {

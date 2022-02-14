@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 
 	"github.com/apaliavy/godel-golang/demo/lecture-elk/app/config"
@@ -52,6 +53,8 @@ func (s *Server) Run() {
 		Handler: s.router,
 	}
 
+	setupPrometheusHandler(s.router)
+
 	go func() {
 		s.logger.Infof("serving at %s:%d", s.cfg.API.Host, s.cfg.API.Port)
 		if err := s.httpServer.ListenAndServe(); err != nil {
@@ -62,6 +65,10 @@ func (s *Server) Run() {
 	if err := gracefulShutdown(context.Background(), s); err != nil {
 		s.logger.WithError(err).Error("failed to gracefully handle shutdown")
 	}
+}
+
+func setupPrometheusHandler(router chi.Router) {
+	router.Handle("/metrics", promhttp.Handler())
 }
 
 func gracefulShutdown(ctx context.Context, s *Server) error {
